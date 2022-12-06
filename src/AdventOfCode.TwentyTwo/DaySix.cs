@@ -4,7 +4,7 @@ namespace AdventOfCode.TwentyTwo;
 
 public class DaySix : IChallenge<int>
 {
-    public string ChallengeInputPath => Path.GetFullPath("./ChallengeInputData/day_6.txt");
+    public string ChallengeInputPath => DataProvider<DaySix>.GetChallengePath();
 
     private string input; 
     public int RunTaskOne(string[] lines)
