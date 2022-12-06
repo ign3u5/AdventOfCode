@@ -1,12 +1,9 @@
-﻿using AdventOfCode.TwentyTwo;
+﻿using AdventOfCode.Domain;
+using AdventOfCode.TwentyTwo;
 
-var challenge = new DaySix();
+IChallenge<int> challenge = new DaySix();
 
 var lines = await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
+var challengeOutput = challenge.Run(lines);
 
-var taskOneOutput = challenge.RunTaskOne(lines);
-Console.WriteLine(taskOneOutput);
-
-var taskTwoOutput = challenge.RunTaskTwo(lines);
-Console.WriteLine(taskTwoOutput);
-
+Console.WriteLine(challengeOutput);
