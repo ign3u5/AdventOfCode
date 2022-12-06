@@ -2,6 +2,7 @@
 
 public interface IChallenge<out T>
 {
-    public string ChallengeInputPath { get; }
-    public T Run(string[] lines);
+    string ChallengeInputPath { get; }
+    T RunTaskOne(string[] lines);
+    T RunTaskTwo(string[] lines);
 }
