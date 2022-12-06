@@ -21,7 +21,7 @@ public class DaySix : IChallenge<int>
         return GetIndexOfDistinctCharacters(14);
     }
 
-    public int GetIndexOfDistinctCharacters(int numberOfDistinctChars)
+    private int GetIndexOfDistinctCharacters(int numberOfDistinctChars)
     {
         var uniqueContiguousChars = new Dictionary<char, int>();
         var uniqueCharsCount = 0;
