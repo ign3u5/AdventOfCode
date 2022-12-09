@@ -4,8 +4,7 @@ namespace AdventOfCode.TwentyTwo.Tests;
 
 public class DaySevenTests
 {
-    [Theory]
-    [InlineData("""
+    private const string TestInput = """
         $ cd /
         $ ls
         dir a
@@ -29,7 +28,10 @@ public class DaySevenTests
         8033020 d.log
         5626152 d.ext
         7214296 k
-        """, 95437)]
+        """;
+
+    [Theory]
+    [InlineData(TestInput, 95437)]
     public void RunTaskOne(string input, int actualTotal)
     {
         // Arrange
@@ -41,5 +43,19 @@ public class DaySevenTests
         
         // Assert
         totalSizeOfDir.Should().Be(actualTotal);
+    }
+
+    [Theory]
+    [InlineData(TestInput, 24933642)]
+    public void RunTaskTwo(string input, int actualSmallest)
+    {
+        var lines = input.Split("\r\n");
+        var sut = new DaySeven();
+        
+        // Act
+        var sizeOfFreedSpace = sut.RunTaskTwo(lines);
+        
+        // Assert
+        sizeOfFreedSpace.Should().Be(actualSmallest);
     }
 }
