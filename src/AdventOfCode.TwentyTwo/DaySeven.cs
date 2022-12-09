@@ -27,8 +27,6 @@ public class DaySeven : IChallenge<int>
             
         for (var i = 1; i < lines.Length; i++)
         {
-            // var command = CommandParser.ParseLine(lines[0]);
-            // curDir = command(curDir);
             var curLine = lines[i];
             if (curLine[0] == '$')
             {
@@ -55,31 +53,6 @@ public class DaySeven : IChallenge<int>
         }
 
         return root;
-    }
-
-    private static class CommandParser
-    {
-        public static Func<Directory, Directory> ParseLine(string line)
-        {
-            if (line[0] == '$') return ParseCommand(line);
-            return line[..3] switch
-            {
-                "dir" => dir => dir,
-                _ => dir =>
-                {
-                    dir.Size += int.Parse(line.Split(' ')[0]);
-
-                    return dir;
-                }
-            };
-        }
-
-        private static Func<Directory, Directory> ParseCommand(string line) => line[2..4] switch
-        {
-            "cd" when line[5..] == ".." => dir => dir.ParentDir,
-            "cd" => dir => dir.CreateSubDirectory(line[5..]),
-            _ => dir => dir
-        };
     }
 
     private record Directory
