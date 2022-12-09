@@ -35,7 +35,7 @@ public class DaySevenTests
     public void RunTaskOne(string input, int actualTotal)
     {
         // Arrange
-        var lines = input.Split("\r\n");
+        var lines = input.ReplaceLineEndings("\n").Split("\n");
         var sut = new DaySeven();
         
         // Act
@@ -49,7 +49,7 @@ public class DaySevenTests
     [InlineData(TestInput, 24933642)]
     public void RunTaskTwo(string input, int actualSmallest)
     {
-        var lines = input.Split("\r\n");
+        var lines = input.ReplaceLineEndings("\n").Split("\n");
         var sut = new DaySeven();
         
         // Act

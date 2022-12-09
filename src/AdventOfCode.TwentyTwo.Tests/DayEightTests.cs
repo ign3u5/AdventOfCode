@@ -18,7 +18,7 @@ public class DayEightTests
     public void RunTaskOne(string input, int expected)
     {
         // Arrange
-        var lines = input.Split("\r\n");
+        var lines = input.ReplaceLineEndings("\n").Split("\n");
         var sut = new DayEight();
         
         // Act
@@ -33,7 +33,7 @@ public class DayEightTests
     public void RunTaskTwo(string input, int expected)
     {
         // Arrange
-        var lines = input.Split("\r\n");
+        var lines = input.ReplaceLineEndings("\n").Split("\n");
         var sut = new DayEight();
         
         // Act

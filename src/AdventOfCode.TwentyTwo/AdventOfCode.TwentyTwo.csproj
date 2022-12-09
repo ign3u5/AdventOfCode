@@ -20,6 +20,9 @@
       <None Update="ChallengeInputData\DayEight.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="ChallengeInputData\DayNine.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
