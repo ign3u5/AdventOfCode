@@ -67,7 +67,7 @@ public class DayNineTests
 
     [Theory]
     [InlineData(input, 1)]
-    [InlineData(input, 36)]
+    [InlineData(inputTask2, 36)]
     public void RunTaskTwo(string input, int expected)
     {
         // Arrange
