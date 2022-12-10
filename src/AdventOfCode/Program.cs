@@ -1,7 +1,6 @@
-﻿using System.Security.Authentication.ExtendedProtection;
-using AdventOfCode.TwentyTwo;
+﻿using AdventOfCode.TwentyTwo;
 
-var challenge = new DayNine();
+var challenge = new DayTen();
 
 var lines = await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
 
