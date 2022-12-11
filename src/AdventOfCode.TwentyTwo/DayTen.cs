@@ -9,41 +9,33 @@ public class DayTen : IChallenge<int>
     public int RunTaskOne(string[] lines)
     {
         var cycle = 0;
-        var x = 1;
         var nextCheck = 20;
+        var signalStrengthTotal = 0;
 
-        var signalStrength = 0;
-
-        foreach (var line in lines)
+        void runCommandForCycle(int x)
         {
-            if (line[..4] == "noop")
+            cycle++;
+            tryUpdateSignalStrengthAtCheckFor(x);
+        }
+
+        void tryUpdateSignalStrengthAtCheckFor(int x)
+        {
+            if (cycle >= nextCheck)
             {
-                if (cycle + 1 >= nextCheck)
-                {
-                    signalStrength += nextCheck * x;
-                    nextCheck += 40;
-                }
-                cycle++;
-            }
-            if (line[..4] == "addx")
-            {
-                var value = int.Parse(line[5..]);
-                if (cycle + 2 >= nextCheck)
-                {
-                    signalStrength += nextCheck * x;
-                    nextCheck += 40;
-                }
-                x += value;
-                cycle += 2;
+                signalStrengthTotal += nextCheck * x;
+                nextCheck += 40;
             }
         }
 
-        return signalStrength;
+        ParseAndActionCommands(lines, runCommandForCycle, x: 1);
+
+        return signalStrengthTotal;
     }
 
     public int RunTaskTwo(string[] lines)
     {
         var output = GenerateCrtOuput(lines);
+
         foreach(var line in output)
         {
             Console.WriteLine(line);
@@ -55,44 +47,52 @@ public class DayTen : IChallenge<int>
     public string[] GenerateCrtOuput(string[] lines)
     {
         var cycle = 0;
-        var x = 1;
-        var nextCheck = 40;
-        var crtLine = 0;
+        var currCrtLine = 0;
         var crtLines = new int[6].Select(_ => new char[40]).ToArray();
-        var signalStrength = 0;
 
-        void Increment()
+        ParseAndActionCommands(lines, runCommandForCycle, x: 1);
+
+        void runCommandForCycle(int x)
         {
-            var crtX = cycle - (crtLine * 40);
-            crtLines[crtLine][crtX] = GetChar(x, crtX);
-            if (cycle + 1 >= nextCheck)
-            {
-                signalStrength += nextCheck * x;
-                nextCheck += 40;
-                crtLine++;
-            }
+            addCrtPixelFor(x);
             cycle++;
+            tryIncementLine();
         }
 
-        foreach (var line in lines)
-        {
-            if (line[..4] == "noop")
-            {
-                Increment();
-            }
-            if (line[..4] == "addx")
-            {
-                Increment();
-                Increment();
+        void addCrtPixelFor(int x) =>
+            crtLines[currCrtLine][cycle] = GetCrtPixel(x, cycle);
 
-                var value = int.Parse(line[5..]);
-                x += value;
+        void tryIncementLine()
+        {
+            if(cycle >= 40)
+            {
+                cycle -= 40;
+                currCrtLine++;
             }
         }
 
         return crtLines.Select(cl => new string(cl)).ToArray();
     }
 
-    private char GetChar(int currX, int crtX) => crtX > currX - 2 && crtX < currX + 2 ? '#' : '.';
+    private static void ParseAndActionCommands(string[] lines, Action<int> incrementCycle, int x)
+    {
+        foreach (var line in lines)
+        {
+            if (line[..4] == "noop")
+            {
+                incrementCycle(x);
+            }
+            if (line[..4] == "addx")
+            {
+                incrementCycle(x);
+                incrementCycle(x);
+
+                var value = int.Parse(line[5..]);
+                x += value;
+            }
+        }
+    }
+
+    private char GetCrtPixel(int currX, int crtX) => crtX > currX - 2 && crtX < currX + 2 ? '#' : ' ';
 }
 
