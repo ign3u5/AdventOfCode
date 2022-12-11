@@ -51,15 +51,16 @@ public class DayEleven : IChallenge<double>
             monkeys[i] = monkey;
         }
 
-        for (var i = 0; i < 20; i++)
+        var superMod = monkeys.Aggregate(1, (acc, cur) => acc * cur.DivisiblyBy);
+
+        for (var i = 0; i < 10000; i++)
         {
             foreach (var monkey in monkeys)
             {
                 foreach (var item in monkey.StartingItems)
                 {
                     var worryLevel = monkey.Operation(item);
-                    //worryLevel /= 3;
-                    worryLevel = double.Floor(worryLevel);
+                    worryLevel %= superMod;
                     var isDivisible = monkey.IsDivisible(worryLevel);
                     monkeys[monkey.ThrowTo[isDivisible]].StartingItems.Enqueue(worryLevel);
                     monkey.InspectedItems++;
@@ -71,11 +72,11 @@ public class DayEleven : IChallenge<double>
         return GetProductOfTopTwoMostActiveMonkeys(monkeys);
     }
 
-    uint GetProductOfTopTwoMostActiveMonkeys(Monkey[] monkeys) =>
+    double GetProductOfTopTwoMostActiveMonkeys(Monkey[] monkeys) =>
             monkeys
                 .OrderByDescending(m => m.InspectedItems)
                 .Take(2)
-                .Aggregate(1u, (acc, cur) => (uint)(acc * cur.InspectedItems));
+                .Aggregate(1d, (acc, cur) => acc * cur.InspectedItems);
 
     private Monkey ParseMonkey(int monkeyId, string[] lines)
     {
@@ -145,14 +146,14 @@ public class DayEleven : IChallenge<double>
         public Func<double, double> Operation { get; init; }
         public Dictionary<bool, int> ThrowTo { get; init; }
         public double InspectedItems { get; set; } = 0;
-        private int _divisiblyBy;
+        public int DivisiblyBy { get; }
 
         public Monkey(int divisibleBy)
         {
-            _divisiblyBy = divisibleBy;
+            DivisiblyBy = divisibleBy;
         }
 
-        public bool IsDivisible(double num) => num % _divisiblyBy == 0;
+        public bool IsDivisible(double num) => num % DivisiblyBy == 0;
     }
 }
 
