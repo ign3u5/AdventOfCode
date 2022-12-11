@@ -51,7 +51,7 @@ public class DayEleven : IChallenge<double>
             monkeys[i] = monkey;
         }
 
-        var superMod = monkeys.Aggregate(1, (acc, cur) => acc * cur.DivisiblyBy);
+        var commondDenominator = monkeys.Aggregate(1, (acc, cur) => acc * cur.DivisiblyBy);
 
         for (var i = 0; i < 10000; i++)
         {
@@ -60,7 +60,7 @@ public class DayEleven : IChallenge<double>
                 foreach (var item in monkey.StartingItems)
                 {
                     var worryLevel = monkey.Operation(item);
-                    worryLevel %= superMod;
+                    worryLevel %= commondDenominator;
                     var isDivisible = monkey.IsDivisible(worryLevel);
                     monkeys[monkey.ThrowTo[isDivisible]].StartingItems.Enqueue(worryLevel);
                     monkey.InspectedItems++;
