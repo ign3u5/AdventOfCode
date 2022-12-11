@@ -7,7 +7,7 @@ public class DayElevenTests
 {
     [Theory]
     [InlineData(_input, 10605)]
-    public void RunTaskOne(string input, int expected)
+    public void RunTaskOne(string input, double expected)
     {
         // Arrange
         var lines = input.ReplaceLineEndings("\n").Split('\n');
@@ -15,6 +15,21 @@ public class DayElevenTests
 
         // Act
         var monkeyBusiness = sut.RunTaskOne(lines);
+
+        // Assert
+        monkeyBusiness.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData(_input, 2713310158)]
+    public void RunTaskTwo(string input, double expected)
+    {
+        // Arrange
+        var lines = input.ReplaceLineEndings("\n").Split('\n');
+        var sut = new DayEleven();
+
+        // Act
+        var monkeyBusiness = sut.RunTaskTwo(lines);
 
         // Assert
         monkeyBusiness.Should().Be(expected);

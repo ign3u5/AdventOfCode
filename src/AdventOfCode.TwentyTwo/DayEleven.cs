@@ -3,14 +3,16 @@ using AdventOfCode.Domain;
 
 namespace AdventOfCode.TwentyTwo;
 
-public class DayEleven : IChallenge<int>
+public class DayEleven : IChallenge<double>
 {
     public string ChallengeInputPath => DataProvider<DayEleven>.GetChallengePath();
 
-    public int RunTaskOne(string[] lines)
+    public double RunTaskOne(string[] lines)
     {
         var numberOfMonkeys = (int)Math.Round(lines.Length / 7d);
+
         Monkey[] monkeys = new Monkey[numberOfMonkeys];
+
         for (var i = 0; i < numberOfMonkeys; i++)
         {
             Monkey monkey = ParseMonkey(i, lines);
@@ -25,6 +27,7 @@ public class DayEleven : IChallenge<int>
                 {
                     var worryLevel = monkey.Operation(item);
                     worryLevel /= 3;
+                    worryLevel = double.Floor(worryLevel);
                     var isDivisible = monkey.IsDivisible(worryLevel);
                     monkeys[monkey.ThrowTo[isDivisible]].StartingItems.Enqueue(worryLevel);
                     monkey.InspectedItems++;
@@ -33,19 +36,46 @@ public class DayEleven : IChallenge<int>
             }
         }
 
-        return GetProductOfTopTwoMostActiveMonkeys();
+        return GetProductOfTopTwoMostActiveMonkeys(monkeys);
+    }
 
-        int GetProductOfTopTwoMostActiveMonkeys() =>
+    public double RunTaskTwo(string[] lines)
+    {
+        var numberOfMonkeys = (int)Math.Round(lines.Length / 7d);
+
+        Monkey[] monkeys = new Monkey[numberOfMonkeys];
+
+        for (var i = 0; i < numberOfMonkeys; i++)
+        {
+            Monkey monkey = ParseMonkey(i, lines);
+            monkeys[i] = monkey;
+        }
+
+        for (var i = 0; i < 20; i++)
+        {
+            foreach (var monkey in monkeys)
+            {
+                foreach (var item in monkey.StartingItems)
+                {
+                    var worryLevel = monkey.Operation(item);
+                    //worryLevel /= 3;
+                    worryLevel = double.Floor(worryLevel);
+                    var isDivisible = monkey.IsDivisible(worryLevel);
+                    monkeys[monkey.ThrowTo[isDivisible]].StartingItems.Enqueue(worryLevel);
+                    monkey.InspectedItems++;
+                }
+                monkey.StartingItems.Clear();
+            }
+        }
+
+        return GetProductOfTopTwoMostActiveMonkeys(monkeys);
+    }
+
+    uint GetProductOfTopTwoMostActiveMonkeys(Monkey[] monkeys) =>
             monkeys
                 .OrderByDescending(m => m.InspectedItems)
                 .Take(2)
-                .Aggregate(1, (acc, cur) => acc * cur.InspectedItems);
-    }
-
-    public int RunTaskTwo(string[] lines)
-    {
-        return 0;
-    }
+                .Aggregate(1u, (acc, cur) => (uint)(acc * cur.InspectedItems));
 
     private Monkey ParseMonkey(int monkeyId, string[] lines)
     {
@@ -59,31 +89,31 @@ public class DayEleven : IChallenge<int>
             ThrowTo = GetThrowTo()
         };
 
-        Queue<int> GetStartingItems()
+        Queue<double> GetStartingItems()
         {
-            IEnumerable<int> startingItems =
+            IEnumerable<double> startingItems =
                 lines[startingIndex + 1]
                     .Split(':')[1]
                     .Split(',')
-                    .Select(si => int.Parse(si.Trim()));
+                    .Select(si => double.Parse(si.Trim()));
 
-            return new Queue<int>(startingItems);
+            return new Queue<double>(startingItems);
         }
 
-        Func<int, int> GetOperation()
+        Func<double, double> GetOperation()
         {
             string op = lines[startingIndex + 2].Split(':')[1].Split('=')[1].Trim()[4..];
 
             var (operand, isInt) = op[2..] switch
             {
                 "old" => (0, false),
-                _ => (int.Parse(op[2..]), true)
+                _ => (double.Parse(op[2..]), true)
             };
 
-            Func<int, int> operation = op[0] switch
+            Func<double, double> operation = op[0] switch
             {
-                '*' => (int old) => old * (isInt ? operand : old),
-                '+' => (int old) => old + (isInt ? operand : old),
+                '*' => (double old) => old * (isInt ? operand : old),
+                '+' => (double old) => old + (isInt ? operand : old),
                 _ => throw new ArgumentException($"Unknown operator {op[0]}")
             };
 
@@ -111,10 +141,10 @@ public class DayEleven : IChallenge<int>
     private class Monkey
     {
         public int Id { get; init; }
-        public Queue<int> StartingItems { get; init; }
-        public Func<int, int> Operation { get; init; }
+        public Queue<double> StartingItems { get; init; }
+        public Func<double, double> Operation { get; init; }
         public Dictionary<bool, int> ThrowTo { get; init; }
-        public int InspectedItems { get; set; } = 0;
+        public double InspectedItems { get; set; } = 0;
         private int _divisiblyBy;
 
         public Monkey(int divisibleBy)
@@ -122,7 +152,7 @@ public class DayEleven : IChallenge<int>
             _divisiblyBy = divisibleBy;
         }
 
-        public bool IsDivisible(int num) => num % _divisiblyBy == 0;
+        public bool IsDivisible(double num) => num % _divisiblyBy == 0;
     }
 }
 
