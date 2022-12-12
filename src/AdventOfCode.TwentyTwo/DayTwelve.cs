@@ -200,7 +200,20 @@ public class DayTwelve : IChallenge<int>
     public int RunTaskTwo(string[] lines)
     {
         Queue<Node> unvisitedNodes = new();
-        Node[][] nodes = new Node[lines.Length][];
+        DNode[][] nodes = new DNode[lines.Length][]
+            .Select((_, i) => new Node[lines[i].Length]
+                .Select((_, j) =>
+                {
+                    var curVal = lines[i][j];
+                    var dnode = new DNode
+                    {
+                        Position = (i, j),
+                        Score = curVal == 'E' ? 0 : int.MaxValue,
+                        Val = curVal == 'E' ? 'E' : 'z'
+                    };
+
+                    return dnode;
+                }).ToArray()).ToArray();
 
         for (var i = 0; i < lines.Length; i++)
         {
