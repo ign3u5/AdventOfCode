@@ -1,4 +1,5 @@
-﻿using AdventOfCode.Domain;
+﻿using System.Data;
+using AdventOfCode.Domain;
 
 namespace AdventOfCode.TwentyTwo;
 
@@ -125,10 +126,80 @@ public class DayTwelve : IChallenge<int>
         return 0;
     }
 
+    private delegate bool FindCanMove(int from, int to);
+    private Node Dijkstras(Node[][] nodes, (int i, int j) startingPos, FindCanMove canMove, char targetVal)
+    {
+        Queue<Node> unvisitedNodes = new();
+        unvisitedNodes.Enqueue(nodes[startingPos.i][startingPos.j]);
+
+        while (unvisitedNodes.TryDequeue(out var node))
+        {
+            if (node.Val == targetVal) return node;
+                node.IsDiscovered = true;
+            var neighbors = GetUnvisitedNeighbors(nodes, node);
+            foreach (var neighbor in neighbors)
+            {
+                if (canMove(node.Val, neighbor.Val))
+                {
+                    if (node.GScore + 1 < neighbor.GScore)
+                    {
+                        neighbor.GScore = node.GScore + 1;
+                        neighbor.Previous = node;
+                        unvisitedNodes.Enqueue(neighbor);
+                    }
+                }
+            }
+        }
+
+        throw new Exception("Cannot find target node");
+    }
+
+    private class DNode
+    {
+        public bool IsDiscovered { get; set; }
+        public int Val { get; set; }
+        public int Score { get; set; }
+        public (int, int) Position { get; set; }
+        public DNode Previous { get; set; }
+    }
+    
+    List<Node> GetUnvisitedNeighbors(Node[][] nodes, Node node)
+    {
+        List<Node> neighbors = new();
+        if (node.Position.i > 0)
+        {
+            var neighbor = nodes[node.Position.i - 1][node.Position.j];
+            if (!neighbor.IsDiscovered)
+                neighbors.Add(neighbor);
+        }
+
+        if (node.Position.i < nodes.Length - 1)
+        {
+            var neighbor = nodes[node.Position.i + 1][node.Position.j];
+            if (!neighbor.IsDiscovered)
+                neighbors.Add(neighbor);
+        }
+
+        if (node.Position.j > 0)
+        {
+            var neighbor = nodes[node.Position.i][node.Position.j - 1];
+            if (!neighbor.IsDiscovered)
+                neighbors.Add(neighbor);
+        }
+
+        if (node.Position.j < nodes[0].Length - 1)
+        {
+            var neighbor = nodes[node.Position.i][node.Position.j + 1];
+            if (!neighbor.IsDiscovered)
+                neighbors.Add(neighbor);
+        }
+
+        return neighbors;
+    }
+
     public int RunTaskTwo(string[] lines)
     {
-        PriorityQueue<Node, int> unvisitedNodes = new();
-        PriorityQueue<Node, int> visitedNodes = new();
+        Queue<Node> unvisitedNodes = new();
         Node[][] nodes = new Node[lines.Length][];
 
         for (var i = 0; i < lines.Length; i++)
@@ -148,19 +219,15 @@ public class DayTwelve : IChallenge<int>
                 {
                     node.Val = 'z';
                     node.GScore = 0;
-                    unvisitedNodes.Enqueue(node, 0);
+                    unvisitedNodes.Enqueue(node);
                 }
 
                 nodes[i][j] = node;
             }
         }
 
-        while (unvisitedNodes.TryDequeue(out var node, out _))
+        while (unvisitedNodes.TryDequeue(out var node))
         {
-            if (node.IsDiscovered)
-            {
-                continue;
-            }
             node.IsDiscovered = true;
             if (node.Val == 'a')
             {
@@ -175,14 +242,13 @@ public class DayTwelve : IChallenge<int>
                     {
                         neighbor.GScore = node.GScore + 1;
                         neighbor.Previous = node;
-                        unvisitedNodes.Enqueue(neighbor, neighbor.GScore);
+                        unvisitedNodes.Enqueue(neighbor);
                     }
                 }
             }
-            visitedNodes.Enqueue(node, node.FScore);
         }
 
-        Node[] GetUnvisitedNeighbors(Node node)
+        List<Node> GetUnvisitedNeighbors(Node node)
         {
             List<Node> neighbors = new();
             if (node.Position.i > 0)
@@ -213,7 +279,7 @@ public class DayTwelve : IChallenge<int>
                     neighbors.Add(neighbor);
             }
 
-            return neighbors.ToArray();
+            return neighbors;
         }
 
         return 0;
