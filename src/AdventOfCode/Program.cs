@@ -1,6 +1,6 @@
 ﻿using AdventOfCode.TwentyTwo;
 
-var challenge = new DayTwelve();
+var challenge = new DayThirteen();
 
 var lines = await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
 
