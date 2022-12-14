@@ -18,6 +18,21 @@ public class DayThirteenTests
         // Assert
         sumOfPairsIndices.Should().Be(expected);
     }
+    
+    [Theory]
+    [InlineData(_input, 140)]
+    public void RunTaskTwo(string input, int expected)
+    {
+        // Arrange
+        var lines = input.ReplaceLineEndings("\n").Split("\n");
+        var sut = new DayThirteen();
+        
+        // Act
+        var orderedPackets = sut.RunTaskTwo(lines);
+        
+        // Assert
+        orderedPackets.Should().Be(expected);
+    }
 
     private const string _input = """
         [1,1,3,1,1]

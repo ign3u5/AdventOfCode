@@ -14,6 +14,7 @@ public class DayThirteen : IChallenge<int>
     
     private class Directory
     {
+        public bool IsKey { get; private set; }
         public int Length => Contents.Count;
         public List<(Directory? dir, int? file)> Contents { get; } = new();
         public Directory? Parent { get; init; }
@@ -23,6 +24,56 @@ public class DayThirteen : IChallenge<int>
         public Directory() { }
 
         private Directory(int? file) { Contents.Add((null, file)); }
+
+        public Directory AsKey()
+        {
+            IsKey = true;
+            return this;
+        }
+    }
+    
+    public int RunTaskTwo(string[] lines)
+    {
+        var rawPackets = lines.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+        var directories = new Directory[rawPackets.Length + 2];
+        for (var i = 0; i < rawPackets.Length; i++)
+        {
+            directories[i] = GetDirectory(rawPackets[i]);
+        }
+        directories[rawPackets.Length] = GetDirectory("[[6]]").AsKey();
+        directories[rawPackets.Length + 1] = GetDirectory("[[2]]").AsKey();
+        QuickSort(directories, 0, directories.Length - 1);
+
+        return directories.Select((d, i) => d.IsKey ? i + 1 : 1).Aggregate((acc, cur) => acc * cur);
+    }
+
+    void QuickSort(Directory[] directories, int start, int end)
+    {
+        if (start < end)
+        {
+            var pIndex = Partition(directories, start, end);
+            QuickSort(directories, start, pIndex - 1);
+            QuickSort(directories, pIndex + 1, end);
+        }
+    }
+
+    int Partition(Directory[] directories, int start, int end)
+    {
+        var pivot = directories[end];
+
+        var i = start - 1;
+
+        for (var j = start; j < end; j++)
+        {
+            if (CompareValues(directories[j], pivot) == Result.PASS)
+            {
+                i++;
+                (directories[i], directories[j]) = (directories[j], directories[i]);
+            }
+        }
+        
+        (directories[i + 1], directories[end]) = (directories[end], directories[i + 1]);
+        return i + 1;
     }
 
     public int RunTaskOne(string[] lines)
@@ -41,32 +92,33 @@ public class DayThirteen : IChallenge<int>
             }
         }
 
-        Result CompareValues(Directory left, Directory right)
-        {
-            var index = 0;
-            while (true)
-            {
-                if (left.Length == index && right.Length == index) return Result.EQUAL;
-                if (left.Length == index) return Result.PASS;
-                if (right.Length == index) return Result.FAIL;
-
-                var leftVal = left.Contents[index];
-                var rightVal = right.Contents[index];
-
-                if (leftVal.dir != null || rightVal.dir != null)
-                {
-                    var comparisonResult = CompareValues(left.GetValAsDirFor(index), right.GetValAsDirFor(index));
-                    if (comparisonResult != Result.EQUAL) return comparisonResult;
-                }
-
-                if (leftVal.file < rightVal.file) return Result.PASS;
-                if (leftVal.file > rightVal.file) return Result.FAIL;
-                index++;
-            }
-        }
         
         //Between 5605
         return output;
+    }
+    
+    private Result CompareValues(Directory left, Directory right)
+    {
+        var index = 0;
+        while (true)
+        {
+            if (left.Length == index && right.Length == index) return Result.EQUAL;
+            if (left.Length == index) return Result.PASS;
+            if (right.Length == index) return Result.FAIL;
+
+            var leftVal = left.Contents[index];
+            var rightVal = right.Contents[index];
+
+            if (leftVal.dir != null || rightVal.dir != null)
+            {
+                var comparisonResult = CompareValues(left.GetValAsDirFor(index), right.GetValAsDirFor(index));
+                if (comparisonResult != Result.EQUAL) return comparisonResult;
+            }
+
+            if (leftVal.file < rightVal.file) return Result.PASS;
+            if (leftVal.file > rightVal.file) return Result.FAIL;
+            index++;
+        }
     }
     
     private string[][] GetPairs(string[] lines)
@@ -129,8 +181,5 @@ public class DayThirteen : IChallenge<int>
         return parent;
     }
 
-    public int RunTaskTwo(string[] lines)
-    {
-        return 0;
-    }
+    
 }
