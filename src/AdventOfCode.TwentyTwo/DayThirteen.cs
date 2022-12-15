@@ -31,7 +31,7 @@ public class DayThirteen : IChallenge<int>
             return this;
         }
     }
-    
+
     public int RunTaskTwo(string[] lines)
     {
         var rawPackets = lines.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
@@ -40,40 +40,13 @@ public class DayThirteen : IChallenge<int>
         {
             directories[i] = GetDirectory(rawPackets[i]);
         }
+
         directories[rawPackets.Length] = GetDirectory("[[6]]").AsKey();
         directories[rawPackets.Length + 1] = GetDirectory("[[2]]").AsKey();
-        QuickSort(directories, 0, directories.Length - 1);
+
+        directories.QuickSort((curr, pivot) => CompareValues(curr, pivot) == Result.PASS);
 
         return directories.Select((d, i) => d.IsKey ? i + 1 : 1).Aggregate((acc, cur) => acc * cur);
-    }
-
-    void QuickSort(Directory[] directories, int start, int end)
-    {
-        if (start < end)
-        {
-            var pIndex = Partition(directories, start, end);
-            QuickSort(directories, start, pIndex - 1);
-            QuickSort(directories, pIndex + 1, end);
-        }
-    }
-
-    int Partition(Directory[] directories, int start, int end)
-    {
-        var pivot = directories[end];
-
-        var i = start - 1;
-
-        for (var j = start; j < end; j++)
-        {
-            if (CompareValues(directories[j], pivot) == Result.PASS)
-            {
-                i++;
-                (directories[i], directories[j]) = (directories[j], directories[i]);
-            }
-        }
-        
-        (directories[i + 1], directories[end]) = (directories[end], directories[i + 1]);
-        return i + 1;
     }
 
     public int RunTaskOne(string[] lines)
@@ -92,7 +65,6 @@ public class DayThirteen : IChallenge<int>
             }
         }
 
-        
         //Between 5605
         return output;
     }
