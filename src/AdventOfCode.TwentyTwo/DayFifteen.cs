@@ -9,7 +9,7 @@ namespace AdventOfCode.TwentyTwo
 
         public int RunTaskOne(string[] lines)
         {
-            int targetY = 10;
+            int targetY = 2000000;
             HashSet<(int x, int y)> beacons = new();
             HashSet<(int x, int y, Datum type)> data = new();
             foreach (var line in lines)
@@ -21,58 +21,53 @@ namespace AdventOfCode.TwentyTwo
                 rawCoords = line[line.LastIndexOf('x')..].Split(", ");
                 var beaconCoords = (x: int.Parse(rawCoords[0][2..]), y: int.Parse(rawCoords[1][2..]));
                 data.Add((beaconCoords.x, beaconCoords.y, Datum.BEACON));
+                beacons.Add((beaconCoords.x, beaconCoords.y));
 
                 var mDistance = Math.Abs(sensorCoords.x - beaconCoords.x) + Math.Abs(sensorCoords.y - beaconCoords.y);
 
-                if (targetY > sensorCoords.y - mDistance && targetY < sensorCoords.y + mDistance)
+                if (targetY >= sensorCoords.y - mDistance && targetY <= sensorCoords.y + mDistance)
                 {
                     if (targetY > sensorCoords.y)
                     {
-                        var n = sensorCoords.y + mDistance - targetY - 1;
-                        for (var i = sensorCoords.x - n; i < sensorCoords.x + n; i++)
+                        var n = Math.Abs(sensorCoords.y + mDistance - targetY);
+                        for (var i = sensorCoords.x - n; i < sensorCoords.x + n + 1; i++)
                         {
                             if (!beacons.Contains((i, targetY))) data.Add((i, targetY, Datum.FULL));
                         } 
                     }
-                }
 
-                var yCount = 0;
-                var isPivot = false;
-                for (var y = sensorCoords.y - mDistance; y < sensorCoords.y + mDistance + 1; y++)
-                {
-                    int start = sensorCoords.x - yCount;
-                    int end = sensorCoords.x + yCount;
-                    for (var x = start; x < end + 1; x++)
+                    if (targetY < sensorCoords.y)
                     {
-                        data.Add((x, y, Datum.FULL));
+                        var n = targetY - Math.Abs(sensorCoords.y - mDistance);
+                        for (var i = sensorCoords.x - n; i < sensorCoords.x + n + 1; i++)
+                        {
+                            if (!beacons.Contains((i, targetY))) data.Add((i, targetY, Datum.FULL));
+                        }
                     }
 
-                    if (yCount == mDistance)
+                    if (targetY == sensorCoords.y)
                     {
-                        isPivot = true;
+                        for (var i = sensorCoords.x - mDistance; i < sensorCoords.x + mDistance + 1; i++)
+                        {
+                            if (!beacons.Contains((i, targetY))) data.Add((i, targetY, Datum.FULL));
+                        }
                     }
-
-                    if (isPivot)
-                    { 
-                        yCount--;
-                    }
-                    else
-                    {
-                        yCount++;
-                    }
-                    
                 }
             }
+
+            List<(int x, int y, Datum type)> full = new();
 
             var totalSpacesBeaconNotPresent = 0;
             foreach (var datum in data)
             {
-                if (datum.y == 10 && !data.Contains((datum.x, datum.y, Datum.BEACON)))
+                if (datum.y == targetY && !data.Contains((datum.x, datum.y, Datum.BEACON)))
                 {
+                    full.Add(datum);
                     totalSpacesBeaconNotPresent++;
                 }
             }
 
+            full.OrderBy(d => d.x);
             return totalSpacesBeaconNotPresent;
         }
 
