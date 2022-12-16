@@ -44,7 +44,7 @@ public class DayThirteen : IChallenge<int>
         directories[rawPackets.Length] = GetDirectory("[[6]]").AsKey();
         directories[rawPackets.Length + 1] = GetDirectory("[[2]]").AsKey();
 
-        directories.QuickSort((curr, pivot) => CompareValues(curr, pivot) == Result.PASS);
+        //directories.QuickSort((curr, pivot) => CompareValues(curr, pivot) == Result.PASS);
 
         return directories.Select((d, i) => d.IsKey ? i + 1 : 1).Aggregate((acc, cur) => acc * cur);
     }

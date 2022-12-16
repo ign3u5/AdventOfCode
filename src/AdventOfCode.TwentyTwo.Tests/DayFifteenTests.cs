@@ -14,10 +14,10 @@ namespace AdventOfCode.TwentyTwo.Tests
             var sut = new DayFifteen();
 
             // Act
-            var monkeyBusiness = sut.RunTaskOne(lines);
+            var totalSpacesBeaconNotPresent = sut.RunTaskOne(lines);
 
             // Assert
-            monkeyBusiness.Should().Be(expected);
+            totalSpacesBeaconNotPresent.Should().Be(expected);
         }
 
         private const string _input = """
