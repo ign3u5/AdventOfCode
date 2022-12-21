@@ -1,8 +1,8 @@
-﻿namespace AdventOfCode.TwentyTwo.Tests
+﻿namespace AdventOfCode.TwentyTwo.Tests;
+
+public class DayTwentyOneTests : BaseTests<DayTwentyOne, double>
 {
-    public class DayTwentyOneTests : BaseTests<DayTwentyOne, double>
-    {
-        private const string _input = """
+    private const string _input = """
             root: pppw + sjmn
             dbpl: 5
             cczh: sllz + lgvd
@@ -20,12 +20,11 @@
             hmdt: 32
             """;
 
-        [Theory]
-        [InlineData(_input, 152)]
-        public void RunTaskOne(string input, double expected) => TaskOne(input, expected);
-        
-        [Theory]
-        [InlineData(_input, 301)]
-        public void RunTaskTwo(string input, double expected) => TaskTwo(input, expected);
-    }
+    [Theory]
+    [InlineData(_input, 152)]
+    public void RunTaskOne(string input, double expected) => TaskOne(input, expected);
+    
+    [Theory]
+    [InlineData(_input, 301)]
+    public void RunTaskTwo(string input, double expected) => TaskTwo(input, expected);
 }

@@ -1,41 +1,41 @@
 ﻿using System;
 using FluentAssertions;
 
-namespace AdventOfCode.TwentyTwo.Tests
-{
+namespace AdventOfCode.TwentyTwo.Tests;
+
 	public class DayFifteenTests
 	{
-        [Theory]
-        [InlineData(_input, 26)]
-        public void RunTaskOne(string input, int expected)
-        {
-            // Arrange
-            var lines = input.ReplaceLineEndings("\n").Split('\n');
-            var sut = new DayFifteen();
+    [Theory]
+    [InlineData(_input, 26)]
+    public void RunTaskOne(string input, int expected)
+    {
+        // Arrange
+        var lines = input.ReplaceLineEndings("\n").Split('\n');
+        var sut = new DayFifteen();
 
-            // Act
-            var totalSpacesBeaconNotPresent = sut.GetNumberOfTakenPositions(lines, 10);
+        // Act
+        var totalSpacesBeaconNotPresent = sut.GetNumberOfTakenPositions(lines, 10);
 
-            // Assert
-            totalSpacesBeaconNotPresent.Should().Be(expected);
-        }
+        // Assert
+        totalSpacesBeaconNotPresent.Should().Be(expected);
+    }
 
-        [Theory]
-        [InlineData(_input, 56000011)]
-        public void RunTaskTwo(string input, int expected)
-        {
-            // Arrange
-            var lines = input.ReplaceLineEndings("\n").Split('\n');
-            var sut = new DayFifteen();
+    [Theory]
+    [InlineData(_input, 56000011)]
+    public void RunTaskTwo(string input, int expected)
+    {
+        // Arrange
+        var lines = input.ReplaceLineEndings("\n").Split('\n');
+        var sut = new DayFifteen();
 
-            // Act
-            var totalSpacesBeaconNotPresent = sut.FindAlertBeacon(lines, 20);
+        // Act
+        var totalSpacesBeaconNotPresent = sut.FindAlertBeacon(lines, 20);
 
-            // Assert
-            totalSpacesBeaconNotPresent.Should().Be(expected);
-        }
+        // Assert
+        totalSpacesBeaconNotPresent.Should().Be(expected);
+    }
 
-        private const string _input = """
+    private const string _input = """
             Sensor at x=2, y=18: closest beacon is at x=-2, y=15
             Sensor at x=9, y=16: closest beacon is at x=10, y=16
             Sensor at x=13, y=2: closest beacon is at x=15, y=3
@@ -51,6 +51,5 @@ namespace AdventOfCode.TwentyTwo.Tests
             Sensor at x=14, y=3: closest beacon is at x=15, y=3
             Sensor at x=20, y=1: closest beacon is at x=15, y=3
             """;
-    }
 }
 
