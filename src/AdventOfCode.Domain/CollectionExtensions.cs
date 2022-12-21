@@ -2,6 +2,15 @@
 
 public static class CollectionExtensions
 {
+    public static U TryAdd<T, U>(this IDictionary<T, U> dictionary, T key, Func<T, U> initialiser)
+    {
+        if (dictionary.TryGetValue(key, out U? val)) return val;
+
+        dictionary[key] = initialiser(key);
+
+        return dictionary[key];
+    }
+
     public static IList<T> Swap<T>(this IEnumerable<T> coll, int i1, int i2) => coll.ToArray().Swap(i1, i2);
 
     public static IList<T> Swap<T>(this IList<T> coll, int i1, int i2)

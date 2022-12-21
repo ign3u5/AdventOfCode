@@ -1,78 +1,122 @@
 ﻿using AdventOfCode.Domain;
+using System.Xml.Linq;
 
-namespace AdventOfCode.TwentyTwo
+namespace AdventOfCode.TwentyTwo;
+public class DayTwentyOne : IChallenge<double>
 {
-    public class DayTwentyOne : IChallenge<double>
+    public string ChallengeInputPath => DataProvider<DayTwentyOne>.GetChallengePath();
+
+    public double RunTaskOne(string[] lines)
     {
-        public string ChallengeInputPath => DataProvider<DayTwentyOne>.GetChallengePath();
+        Dictionary<string, Monkey> monkeys = ParseMonkeys(lines);
 
-        public double RunTaskOne(string[] lines)
+        var rootMonkey = monkeys["root"];
+        var output = rootMonkey.Val;
+
+        return output;
+    }
+
+    public double RunTaskTwo(string[] lines)
+    {
+        Dictionary<string, Monkey> monkeys = ParseMonkeys(lines);
+
+        var humn = monkeys["humn"];
+        var output = humn.GetRequiredValToMeetRootEquality();
+
+        return output;
+    }
+
+    private static Dictionary<string, Monkey> ParseMonkeys(string[] lines)
+    {
+        Dictionary<string, Monkey> monkeys = new();
+
+        foreach (string line in lines)
         {
-            Dictionary<string, Monkey> monkeys = new();
+            var name = line[..4];
+            Monkey monkey = monkeys.TryAdd(name, n => new Monkey(n));
+            var isValueMonkey = double.TryParse(line[6..], out double val);
 
-            foreach(string line in lines)
+            if (isValueMonkey)
             {
-                Monkey monkey;
-                if (double.TryParse(line[6..], out double val))
+                monkey.Val = val;
+            }
+            else
+            {
+                monkey.Op = line[11];
+
+                foreach (string miniMonk in GetSubMonkeys(line))
                 {
-                    monkey = new()
-                    {
-                        Name = line[0..4],
-                        Val = val
-                    };
-                } else
+                    var subMonk = monkeys.TryAdd(miniMonk, n => new Monkey(n));
+
+                    subMonk.ParentMonkey = monkey;
+                    monkey.SubMonkeys.Add(subMonk);
+                }
+            }
+        }
+
+        return monkeys;
+
+        static string[] GetSubMonkeys(string line) => new[] { line[6..10], line[13..17] };
+    }
+
+    private class Monkey
+    {
+        private double? _val = null;
+        
+        public string Name { get; set; }
+        public IList<Monkey> SubMonkeys { get; set; } = new List<Monkey>();
+        public Monkey? ParentMonkey { get; set; }
+        public char Op { get; set; }
+
+        public double Val
+        {
+            get => _val ?? Op switch
+            {
+                '+' => SubMonkeys[0].Val + SubMonkeys[1].Val,
+                '-' => SubMonkeys[0].Val - SubMonkeys[1].Val,
+                '*' => SubMonkeys[0].Val * SubMonkeys[1].Val,
+                '/' => SubMonkeys[0].Val / SubMonkeys[1].Val,
+                _ => throw new InvalidDataException("Unknown operand")
+            };
+            set => _val = value;
+        }
+
+        public double GetRequiredValToMeetRootEquality()
+        {
+            _val = null;
+            return AltVal;
+        }
+
+        public double AltVal
+        {
+            get
+            {
+                if (_val is not null) return (double)_val;
+
+                if (ParentMonkey is not null)
                 {
-                    monkey = new()
+                    var isFirstOperand = ParentMonkey.SubMonkeys[0].Name == Name;
+
+                    if (ParentMonkey.IsRoot) return isFirstOperand ? ParentMonkey.SubMonkeys[1].Val : ParentMonkey.SubMonkeys[1].Val;
+
+                    return ParentMonkey.Op switch
                     {
-                        Name = line[0..4],
-                        SubMonkeys = GetSubMonkeys(line),
-                        Operation = GetOperation(line)
-                    };
+                        '+' => isFirstOperand ? ParentMonkey.AltVal - ParentMonkey.SubMonkeys[1].Val : ParentMonkey.AltVal - ParentMonkey.SubMonkeys[0].Val,
+                        '-' => isFirstOperand ? ParentMonkey.AltVal + ParentMonkey.SubMonkeys[1].Val : ParentMonkey.SubMonkeys[0].Val - ParentMonkey.AltVal,
+                        '*' => isFirstOperand ? ParentMonkey.AltVal / ParentMonkey.SubMonkeys[1].Val : ParentMonkey.AltVal / ParentMonkey.SubMonkeys[0].Val,
+                        '/' => isFirstOperand ? ParentMonkey.AltVal * ParentMonkey.SubMonkeys[1].Val : ParentMonkey.SubMonkeys[0].Val / ParentMonkey.AltVal,
+                        _ => throw new InvalidDataException("Unknown operator")
+                    } ;
                 }
 
-                monkeys[monkey.Name] = monkey;
+                return 0;
             }
-
-            var rootMonkey = monkeys["root"];
-            var output = rootMonkey.Val;
-
-            Func<string, string, double> GetOperation(string line)
-            {
-                char oper = line[11];
-                return oper switch
-                {
-                    '+' => (m1, m2) => monkeys[m1].Val + monkeys[m2].Val,
-                    '-' => (m1, m2) => monkeys[m1].Val - monkeys[m2].Val,
-                    '*' => (m1, m2) => monkeys[m1].Val * monkeys[m2].Val,
-                    '/' => (m1, m2) => monkeys[m1].Val / monkeys[m2].Val,
-                    _ => throw new InvalidDataException("Unknown operand")
-                };
-            }
-
-            return output;
         }
+        private bool IsRoot => _val == null && ParentMonkey == null;
 
-        private string[] GetSubMonkeys(string line) => new[] { line[6..10], line[13..17] };
-
-
-        public double RunTaskTwo(string[] lines)
+        public Monkey(string name)
         {
-
-            return 0;
-        }
-
-        private class Monkey
-        {
-            public string Name { get; set; }
-            public string[]? SubMonkeys { get; set; }
-            private double? _val = null;
-            public double Val 
-            {
-                get => _val ?? Operation(SubMonkeys[0], SubMonkeys[1]);
-                set => _val = value;
-            }
-
-            public Func<string, string, double> Operation { get; set; }
+            Name = name;
         }
     }
 }
