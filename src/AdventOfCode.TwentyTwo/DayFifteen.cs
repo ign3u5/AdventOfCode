@@ -10,17 +10,20 @@ namespace AdventOfCode.TwentyTwo
         public int RunTaskOne(string[] lines)
         {
             int targetY = 2000000;
+            return GetNumberOfTakenPositions(lines, targetY);
+        }
+
+        public int GetNumberOfTakenPositions(string[] lines, int targetY)
+        {
             HashSet<(int x, int y)> beacons = new();
-            HashSet<(int x, int y, Datum type)> data = new();
+            HashSet<int> data = new();
             foreach (var line in lines)
             {
                 var rawCoords = line[line.IndexOf('x')..line.IndexOf(':')].Split(", ");
                 var sensorCoords = (x: int.Parse(rawCoords[0][2..]), y: int.Parse(rawCoords[1][2..]));
-                data.Add((sensorCoords.x, sensorCoords.y, Datum.SENSOR));
-
+                
                 rawCoords = line[line.LastIndexOf('x')..].Split(", ");
                 var beaconCoords = (x: int.Parse(rawCoords[0][2..]), y: int.Parse(rawCoords[1][2..]));
-                data.Add((beaconCoords.x, beaconCoords.y, Datum.BEACON));
                 beacons.Add((beaconCoords.x, beaconCoords.y));
 
                 var mDistance = Math.Abs(sensorCoords.x - beaconCoords.x) + Math.Abs(sensorCoords.y - beaconCoords.y);
@@ -32,7 +35,7 @@ namespace AdventOfCode.TwentyTwo
                         var n = Math.Abs(sensorCoords.y + mDistance - targetY);
                         for (var i = sensorCoords.x - n; i < sensorCoords.x + n + 1; i++)
                         {
-                            if (!beacons.Contains((i, targetY))) data.Add((i, targetY, Datum.FULL));
+                            if (!beacons.Contains((i, targetY))) data.Add(i);
                         } 
                     }
 
@@ -41,7 +44,7 @@ namespace AdventOfCode.TwentyTwo
                         var n = targetY - Math.Abs(sensorCoords.y - mDistance);
                         for (var i = sensorCoords.x - n; i < sensorCoords.x + n + 1; i++)
                         {
-                            if (!beacons.Contains((i, targetY))) data.Add((i, targetY, Datum.FULL));
+                            if (!beacons.Contains((i, targetY))) data.Add(i);
                         }
                     }
 
@@ -49,70 +52,128 @@ namespace AdventOfCode.TwentyTwo
                     {
                         for (var i = sensorCoords.x - mDistance; i < sensorCoords.x + mDistance + 1; i++)
                         {
-                            if (!beacons.Contains((i, targetY))) data.Add((i, targetY, Datum.FULL));
+                            if (!beacons.Contains((i, targetY))) data.Add(i);
                         }
                     }
                 }
             }
 
-            List<(int x, int y, Datum type)> full = new();
-
-            var totalSpacesBeaconNotPresent = 0;
-            foreach (var datum in data)
-            {
-                if (datum.y == targetY && !data.Contains((datum.x, datum.y, Datum.BEACON)))
-                {
-                    full.Add(datum);
-                    totalSpacesBeaconNotPresent++;
-                }
-            }
-
-            full.OrderBy(d => d.x);
-            return totalSpacesBeaconNotPresent;
+            
+            return data.Count;
         }
-
+        
         public int RunTaskTwo(string[] lines)
         {
             return 0;
         }
 
-        private enum Datum
+        public int FindAlertBeacon(string[] lines, int range)
         {
-            BEACON,
-            SENSOR,
-            FULL
-        }
+            HashSet<(int x, int y)> beacons = new();
+            List<Sensor> sensors = new();
+            var sensorId = 0;
+            foreach (var line in lines)
+            {
+                var rawCoords = line[line.IndexOf('x')..line.IndexOf(':')].Split(", ");
+                var sensorCoords = (x: int.Parse(rawCoords[0][2..]), y: int.Parse(rawCoords[1][2..]));
 
-        private class Sensor
-        {
-            public (int x, int y) sCoord { get; set; }
-            public (int x, int y) bCoord { get; set; }
-            public int MDistance { get; }
+                rawCoords = line[line.LastIndexOf('x')..].Split(", ");
+                var beaconCoords = (x: int.Parse(rawCoords[0][2..]), y: int.Parse(rawCoords[1][2..]));
+
+                beacons.Add(beaconCoords);
+                var sensor = new Sensor(sensorId++, sensorCoords, beaconCoords);
+                sensors.Add(sensor);
+            }
+
+            var previousRange = (min: int.MaxValue, max: int.MinValue);
+            for (var i = 0; i < range + 1; i++)
+            {
+                var ranges = sensors.Where(s => s.TryGetRangeForY(i, out _)).Select(s =>
+                {
+                    if (s.TryGetRangeForY(i, out var range))
+                    {
+                        return range;
+                    }
+
+                    return (min: 0, max: 0);
+                }).QuickSort((curr, pivot) => curr.min < pivot.min);
+                previousRange = ranges[0];
+                
+                foreach (var rang in ranges.Skip(1))
+                {
+                    if (rang.min > previousRange.max + 1)
+                    {
+                        
+                        return previousRange.max + 1 * 4000000 + i;
+                    }
+                    if (rang.max > previousRange.max)
+                    {
+                        previousRange = rang;
+                    }
+                }                
+            }
             
+
+            foreach (var curr in sensors)
+            {
+                Sensor closestRight = null;
+                Sensor closesDown = null;
+                foreach (var next in sensors)
+                {
+                    if (curr.Id == next.Id) continue;
+                    var signalDelt = Math.Abs(curr.Coords.x - next.Coords.x) + Math.Abs(curr.Coords.y - next.Coords.y);
+                    var boundsDelt = curr.BeaconDistance + next.BeaconDistance - signalDelt;
+                    if (boundsDelt > 0)
+                    {
+                        
+                    }
+                }
+            }
+
+            return 0;
         }
 
-        private class Node
+        private record Sensor
         {
-            public (int x, int y) Coord { get; set; }
-            public NodeType NodeType { get; set; }
+            public int Id { get; }
+            public (int x, int y) Coords { get; }
+            public int BeaconDistance { get; }
 
-            public static Node NewSensor((int x, int y) coord) => new()
+            public Sensor(int id, (int x, int y) coords, (int x, int y) beacon)
             {
-                Coord = coord,
-                NodeType = NodeType.SENSOR
-            };
+                Id = id;
+                Coords = coords;
+                BeaconDistance = Math.Abs(coords.x - beacon.x) + Math.Abs(coords.y - beacon.y);
+            }
 
-            public static Node NewBeacon((int x, int y) coord) => new()
+            public bool TryGetRangeForY(int y, out (int min, int max) range)
             {
-                Coord = coord,
-                NodeType = NodeType.BEACON
-            };
-        }
+                if (y >= Coords.y - BeaconDistance && y <= Coords.y + BeaconDistance)
+                {
+                    var n = 0;
+                    if (y > Coords.y)
+                    {
+                        n = Math.Abs(Coords.y + BeaconDistance - y);
+                        range = (Coords.x - n, Coords.x + n);
+                        return true;
+                    }
 
-        private enum NodeType
-        {
-            BEACON,
-            SENSOR
+                    if (y < Coords.y)
+                    {
+                        n = Math.Abs(y - Math.Abs(Coords.y - BeaconDistance));
+                        range = (Coords.x - n, Coords.x + n);
+                        return true;
+                    }
+
+                    
+                    range = (Coords.x - BeaconDistance, Coords.x + BeaconDistance);
+                    
+                    return true;
+                }
+
+                range = (0, 0);
+                return false;
+            }
         }
     }
 }

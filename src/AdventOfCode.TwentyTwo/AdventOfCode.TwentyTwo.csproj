@@ -41,6 +41,9 @@
       <None Update="ChallengeInputData\DayFifteen.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="ChallengeInputData\DayTwentyOne.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

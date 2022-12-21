@@ -14,7 +14,22 @@ namespace AdventOfCode.TwentyTwo.Tests
             var sut = new DayFifteen();
 
             // Act
-            var totalSpacesBeaconNotPresent = sut.RunTaskOne(lines);
+            var totalSpacesBeaconNotPresent = sut.GetNumberOfTakenPositions(lines, 10);
+
+            // Assert
+            totalSpacesBeaconNotPresent.Should().Be(expected);
+        }
+
+        [Theory]
+        [InlineData(_input, 56000011)]
+        public void RunTaskTwo(string input, int expected)
+        {
+            // Arrange
+            var lines = input.ReplaceLineEndings("\n").Split('\n');
+            var sut = new DayFifteen();
+
+            // Act
+            var totalSpacesBeaconNotPresent = sut.FindAlertBeacon(lines, 20);
 
             // Assert
             totalSpacesBeaconNotPresent.Should().Be(expected);
