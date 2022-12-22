@@ -11,6 +11,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Update="ChallengeInputData\DayNineteen.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="ChallengeInputData\DaySix.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

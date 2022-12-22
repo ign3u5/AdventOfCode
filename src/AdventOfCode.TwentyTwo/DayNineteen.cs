@@ -5,119 +5,115 @@ namespace AdventOfCode.TwentyTwo;
 
 public class DayNineteen : IChallenge<int>
 {
-    public string ChallengeInputPath => DataProvider<DayTwenty>.GetChallengePath();
+    public string ChallengeInputPath => DataProvider<DayNineteen>.GetChallengePath();
 
     public int RunTaskOne(string[] lines)
     {
-        var blueprints = ParseBlueprints(lines);
-        foreach(var blueprint in blueprints)
-        {
-            var totalMinutes = 25;
-            var state = new State { OreRobots = 1 };
-
-            for (var currMinute = 1; currMinute < totalMinutes; currMinute++)
-            {
-                if (TryBuy(blueprint.Geode, out bool shouldContinue))
-                {
-                    state.UpdateTotals();
-                    state.GeodeRobots++;
-                    continue;
-                }
-                else if (shouldContinue)
-                {
-                    state.UpdateTotals();
-                    continue;
-                }
-
-                if (TryBuy(blueprint.Obsidian, out shouldContinue))
-                {
-                    state.UpdateTotals();
-                    state.ObsidianRobots++;
-                    continue;
-                }
-                else if (shouldContinue)
-                {
-                    state.UpdateTotals();
-                    continue;
-                }
-
-                if (TryBuy(blueprint.Clay, out shouldContinue))
-                {
-                    state.UpdateTotals();
-                    state.ClayRobots++;
-                    continue;
-                }
-                else if (shouldContinue)
-                {
-                    state.UpdateTotals();
-                    continue;
-                }
-
-                if (TryBuy(blueprint.Ore, out shouldContinue))
-                {
-                    state.UpdateTotals();
-                    state.OreRobots++;
-                    continue;
-                }
-                else if (shouldContinue)
-                {
-                    state.UpdateTotals();
-                    continue;
-                }
-                state.UpdateTotals();
-            }
-            blueprint.MaxNumOfGeodes = state.Totals.Geode;
-
-            bool TryBuy(Cost cost, out bool shouldContinue)
-            {
-                shouldContinue = false;
-                if (state.Totals.Obsidian >= cost.Obsidian)
-                {
-                    if (state.Totals.Clay >= cost.Clay)
-                    {
-                        if (state.Totals.Ore >= cost.Ore)
-                        {
-                            state.Totals.Ore -= cost.Ore;
-                            state.Totals.Clay -= cost.Clay;
-                            state.Totals.Obsidian -= cost.Obsidian;
-                            return true;
-                        }
-                        else if (cost.Clay != 0 || cost.Obsidian != 0)
-                        {
-                            shouldContinue = true;
-                        }
-                    }
-                    else if (cost.Obsidian != 0)
-                    {
-                        shouldContinue = true;
-                    }
-                    else if (cost.Clay != 0)
-                    {
-                        var minsUntilRequiredOre = Math.Round((double)(cost.Ore / state.OreRobots));
-                        var clayAtRequiredOre = state.Totals.Clay + (minsUntilRequiredOre * state.ClayRobots);
-                        if (clayAtRequiredOre >= cost.Clay)
-                        {
-                            shouldContinue = true;
-                        }
-                    }
-                }
-                else if (cost.Obsidian != 0)
-                {
-                    var minsUntilRequiredOre = Math.Round((double)(cost.Ore / state.OreRobots));
-                    var obsidianAtRequiredOre = state.Totals.Obsidian + (minsUntilRequiredOre * state.ObsidianRobots);
-                    if (obsidianAtRequiredOre >= cost.Obsidian)
-                    {
-                        shouldContinue = true;
-                    }
-                }
-                return false;
-            }
-        }
-
+        Blueprint[] blueprints = ParseBlueprints(lines);
         var total = 0;
-        foreach(var blueprint in blueprints)
+
+        foreach (var blueprint in blueprints)
         {
-            total += blueprint.MaxNumOfGeodes * blueprint.Id;
+            List<State> finalStates = new();
+            var highestGeodesFound = 0;
+            Stack<State> states = new(new State[] { new(Robots: new(Ore: 1), Inventory: new(), CurrMin: 0) });
+            var maxRequired = new Minerals(
+                Ore: (new int[] { blueprint.OreCost.Ore, blueprint.ClayCost.Ore, blueprint.ObsidianCost.Ore, blueprint.GeodeCost.Ore}).Max(),
+                Clay: blueprint.ObsidianCost.Clay,
+                Obsidian: blueprint.GeodeCost.Obsidian
+                );
+
+            while (states.TryPop(out State state))
+            {
+                static int triangleGeodes(int timeRemaining)
+                {
+                    timeRemaining--;
+                    return timeRemaining * (timeRemaining + 1) / 2;
+                }
+
+                void handleNewState(State newState)
+                {
+                    if (newState.Robots > maxRequired)
+                        return;
+
+                    if (highestGeodesFound < newState.Inventory.Geode)
+                    {
+                        highestGeodesFound = newState.Inventory.Geode;
+                        if (newState.CurrMin == 24)
+                        {
+                            finalStates.Add(newState);
+                            return;
+                        }
+                        states.Push(newState);
+                        return;
+                    }
+
+                    var possibleGeodes = newState.Inventory.Geode + newState.Robots.Geode * (24 - newState.CurrMin) + triangleGeodes(24 - newState.CurrMin);
+                    if (possibleGeodes <= highestGeodesFound)
+                    {
+                        return;
+                    }
+
+                    if (newState.CurrMin == 24)
+                    {
+                        finalStates.Add(newState);
+                        return;
+                    }
+
+                    states.Push(newState);
+                }
+
+                handleNewState(state with
+                {
+                    Inventory = state.Inventory + state.Robots,
+                    CurrMin = state.CurrMin + 1
+                });
+
+                if (blueprint.OreCost <= state.Inventory)
+                {
+                    handleNewState(
+                        state with
+                        {
+                            Inventory = state.Inventory - blueprint.OreCost + state.Robots,
+                            Robots = state.Robots + new Minerals(Ore: 1),
+                            CurrMin = state.CurrMin + 1
+                        });
+                }
+                if (blueprint.ClayCost <= state.Inventory)
+                {
+                    handleNewState(
+                        state with
+                        {
+                            Inventory = state.Inventory - blueprint.ClayCost + state.Robots,
+                            Robots = state.Robots + new Minerals(Clay: 1),
+                            CurrMin = state.CurrMin + 1
+                        });
+                }
+                if (blueprint.ObsidianCost <= state.Inventory)
+                {
+                    handleNewState(
+                        state with
+                        {
+                            Inventory = state.Inventory - blueprint.ObsidianCost + state.Robots,
+                            Robots = state.Robots + new Minerals(Obsidian: 1),
+                            CurrMin = state.CurrMin + 1
+                        });
+                }
+                if (blueprint.GeodeCost <= state.Inventory)
+                {
+                    handleNewState(
+                        state with
+                        {
+                            Inventory = state.Inventory - blueprint.GeodeCost + state.Robots,
+                            Robots = state.Robots + new Minerals(Geode: 1),
+                            CurrMin = state.CurrMin + 1
+                        });
+                }
+            }
+            if (finalStates.Count > 0)
+            {
+                total += finalStates.Max(s => s.Inventory.Geode) * blueprint.Id;
+            }
         }
 
         return total;
@@ -131,15 +127,15 @@ public class DayNineteen : IChallenge<int>
         {
             var parts = lines[i].Split(' ');
 
-            Blueprint bp = new(
+            Blueprint blueprint = new(
                 Id: int.Parse(parts[1][..^1]),
-                Ore: new() { Ore = int.Parse(parts[6]) },
-                Clay: new() { Ore = int.Parse(parts[12]) },
-                Obsidian: new() { Ore = int.Parse(parts[18]), Clay = int.Parse(parts[21]) },
-                Geode: new() { Ore = int.Parse(parts[27]), Obsidian = int.Parse(parts[30]) }
+                OreCost: new(Ore: int.Parse(parts[6])),
+                ClayCost: new(Ore: int.Parse(parts[12])),
+                ObsidianCost: new(Ore: int.Parse(parts[18]), Clay: int.Parse(parts[21])),
+                GeodeCost: new(Ore: int.Parse(parts[27]), Obsidian: int.Parse(parts[30]))
             );
 
-            blueprints[i] = bp;
+            blueprints[i] = blueprint;
         }
 
         return blueprints;
@@ -150,34 +146,42 @@ public class DayNineteen : IChallenge<int>
         return 0;
     }
 
-    private class State
-    {
-        public int OreRobots { get; set; }
-        public int ClayRobots { get; set; }
-        public int ObsidianRobots { get; set; }
-        public int GeodeRobots { get; set; }
-        public Cost Totals { get; } = new();
+    private record State (Minerals Robots, Minerals Inventory, int CurrMin);
 
-        public void UpdateTotals()
-        {
-            Totals.Ore += OreRobots;
-            Totals.Clay += ClayRobots;
-            Totals.Obsidian += ObsidianRobots;
-            Totals.Geode += GeodeRobots;
-        }
-    }
-
-    private record Blueprint (int Id, Cost Ore, Cost Clay, Cost Obsidian, Cost Geode) 
+    private record Blueprint (int Id, Minerals OreCost, Minerals ClayCost, Minerals ObsidianCost, Minerals GeodeCost) 
     {
         public int MaxNumOfGeodes { get; set; }
     }
 
-    private record Cost
+    private record Minerals(int Ore = 0, int Clay = 0, int Obsidian = 0, int Geode = 0)
     {
-        public int Ore { get; set; }
-        public int Clay { get; set; }
-        public int Obsidian { get; set; }
-        public int Geode { get; set; }
+        public static Minerals operator +(Minerals a, Minerals b) => a with
+        {
+            Ore = a.Ore + b.Ore,
+            Clay = a.Clay + b.Clay,
+            Obsidian = a.Obsidian + b.Obsidian,
+            Geode = a.Geode + b.Geode
+        };
+        
+        public static Minerals operator -(Minerals a, Minerals b) => a with
+        {
+            Ore = a.Ore - b.Ore,
+            Clay = a.Clay - b.Clay,
+            Obsidian = a.Obsidian - b.Obsidian,
+            Geode = a.Geode - b.Geode
+        };
+
+        public static bool operator >(Minerals a, Minerals b) => 
+            a.Ore > b.Ore || a.Clay > b.Clay || a.Obsidian > b.Obsidian;
+        
+        public static bool operator <(Minerals a, Minerals b) => 
+            a.Ore < b.Ore || a.Clay < b.Clay || a.Obsidian < b.Obsidian;
+        
+        public static bool operator >=(Minerals a, Minerals b) => 
+            a.Ore >= b.Ore && a.Clay >= b.Clay && a.Obsidian >= b.Obsidian && a.Geode >= b.Geode;
+
+        public static bool operator <=(Minerals a, Minerals b) =>
+            a.Ore <= b.Ore && a.Clay <= b.Clay && a.Obsidian <= b.Obsidian && a.Geode <= b.Geode;
     }
 }
 
