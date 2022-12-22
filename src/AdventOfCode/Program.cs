@@ -2,8 +2,7 @@
 
 var challenge = new DayTwenty();
 
-var lines = new[] { "Hello" };
-//await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
+var lines = await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
 
 var taskOneOutput = challenge.RunTaskOne(lines);
 Console.WriteLine(taskOneOutput);
