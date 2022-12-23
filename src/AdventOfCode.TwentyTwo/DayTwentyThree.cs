@@ -12,64 +12,9 @@ public class DayTwentyThree : IChallenge<int>
 
     public int RunTaskOne(string[] lines)
     {
-        // for each round
-        // first half - each elf considers where to move based on current positions
-            // if no elves are in any of the eight positions, the elf does not move
-            // the checks go, N, S, W, E (check for N, NE, NW and same for others)
-            // the at the end of the first round, the first check is moved to the end of the list (i.e. round 2 is S, W, E, N)
-        // second half - if they were the only elf to propose to move to a location, they move there
-            // if more than one elf proposed to move to a speific location, none of the elves move
-        // Find the number of empty squares within the smallest rectangle that fits around all of the elves
-        // (keep track of furthers North, South, East, and West)
         var coords = ParseInput(lines);
 
-        Check tryMoveNorth = ((int x, int y) coord, out (int x, int y) outCoord) =>
-        {
-            outCoord = (coord.x, coord.y - 1);
-            return canMoveNorth(coord) != 0;
-        };
-
-        int canMoveNorth((int x, int y) coord) =>
-            !coords.Contains((coord.x, coord.y - 1))
-            && !coords.Contains((coord.x - 1, coord.y - 1))
-            && !coords.Contains((coord.x + 1, coord.y - 1)) ? 1 : 0;
-
-        Check tryMoveSouth = ((int x, int y) coord, out (int x, int y) outCoord) =>
-        {
-            outCoord = (coord.x, coord.y + 1);
-            return canMoveSouth(coord) != 0;
-        };
-
-        int canMoveSouth((int x, int y) coord) =>
-            !coords.Contains((coord.x, coord.y + 1))
-            && !coords.Contains((coord.x - 1, coord.y + 1))
-            && !coords.Contains((coord.x + 1, coord.y + 1)) ? 2 : 0;
-
-        Check tryMoveWest = ((int x, int y) coord, out (int x, int y) outCoord) =>
-        {
-            outCoord = (coord.x - 1, coord.y);
-            return canMoveWest(coord) != 0;
-        };
-
-        int canMoveWest((int x, int y) coord) =>
-            !coords.Contains((coord.x - 1, coord.y))
-            && !coords.Contains((coord.x - 1, coord.y - 1))
-            && !coords.Contains((coord.x - 1, coord.y + 1)) ? 4 : 0;
-
-        Check tryMoveEast = ((int x, int y) coord, out (int x, int y) outCoord) =>
-        {
-            outCoord = (coord.x + 1, coord.y);
-            return canMoveEast(coord) != 0;
-        };
-
-        int canMoveEast((int x, int y) coord) =>
-            !coords.Contains((coord.x + 1, coord.y))
-            && !coords.Contains((coord.x + 1, coord.y - 1))
-            && !coords.Contains((coord.x + 1, coord.y + 1)) ? 8 : 0;
-
-        bool hasNoSurroudingElves((int, int) coord) => (canMoveNorth(coord) | canMoveSouth(coord) | canMoveWest(coord) | canMoveEast(coord)) == 15;
-
-        Queue<Check> checks = new(new Check[] { tryMoveNorth, tryMoveSouth, tryMoveWest, tryMoveEast });
+        var (checks, hasNoSurroundingElves) = GetChecks(coords);
 
         (int min, int max) xRange = (int.MaxValue, int.MinValue);
         (int min, int max) yRange = (int.MaxValue, int.MinValue);
@@ -79,7 +24,7 @@ public class DayTwentyThree : IChallenge<int>
             Dictionary<(int x, int y), (int x, int y)> newCoords = new();
             foreach(var coord in coords)
             {
-                if (hasNoSurroudingElves(coord)) continue;
+                if (hasNoSurroundingElves(coord)) continue;
 
                 foreach (var check in checks)
                 {
@@ -93,16 +38,23 @@ public class DayTwentyThree : IChallenge<int>
 
             checks.Enqueue(checks.Dequeue());
 
-            foreach(var coordSet in newCoords)
-            {
-                coords.Remove(coordSet.Value);
-                coords.Add(coordSet.Key);
-            }
+            UpdateCoords(newCoords);
         }
 
         foreach(var coord in coords)
         {
             UpdateBounds(coord);
+        }
+
+        return CountEmptySpaces();
+
+        void UpdateCoords(Dictionary<(int x, int y), (int x, int y)> newCoords)
+        {
+            foreach (var coordSet in newCoords)
+            {
+                coords.Remove(coordSet.Value);
+                coords.Add(coordSet.Key);
+            }
         }
 
         void UpdateBounds((int x, int y) coord)
@@ -114,17 +66,62 @@ public class DayTwentyThree : IChallenge<int>
             if (coord.y > yRange.max) yRange.max = coord.y;
         }
 
-        int emptySpaces = 0;
-
-        for (var y = yRange.min; y < yRange.max + 1; y++)
+        int CountEmptySpaces()
         {
-            for (var x = xRange.min; x < xRange.max + 1; x++)
-            {
-                if (!coords.Contains((x, y))) emptySpaces++;
-            }
-        }
+            int emptySpaces = 0;
 
-        return emptySpaces;
+            for (var y = yRange.min; y < yRange.max + 1; y++)
+            {
+                for (var x = xRange.min; x < xRange.max + 1; x++)
+                {
+                    if (!coords.Contains((x, y))) emptySpaces++;
+                }
+            }
+
+            return emptySpaces;
+        }
+    }
+    
+    public int RunTaskTwo(string[] lines)
+    {
+        var coords = ParseInput(lines);
+
+        var (checks, hasNoSurroundingElves) = GetChecks(coords);
+
+        var changesPerRound = 0;
+        var numberOfRounds = 0;
+
+        do
+        {
+            changesPerRound = 0;
+            numberOfRounds++;
+            Dictionary<(int x, int y), (int x, int y)> newCoords = new();
+            foreach (var coord in coords)
+            {
+                if (hasNoSurroundingElves(coord)) continue;
+                changesPerRound++;
+
+                foreach (var check in checks)
+                {
+                    if (check(coord, out var newCoord))
+                    {
+                        newCoords.TryAddAndMaintainUnique(newCoord, coord);
+                        break;
+                    }
+                }
+            }
+
+            checks.Enqueue(checks.Dequeue());
+
+            foreach (var coordSet in newCoords)
+            {
+                coords.Remove(coordSet.Value);
+                coords.Add(coordSet.Key);
+            }
+
+        } while (changesPerRound > 0);
+
+        return numberOfRounds;
     }
 
     private static HashSet<(int x, int y)> ParseInput(string[] lines)
@@ -145,10 +142,8 @@ public class DayTwentyThree : IChallenge<int>
         return coords;
     }
 
-    public int RunTaskTwo(string[] lines)
+    private static (Queue<Check>, Func<(int, int), bool>) GetChecks(HashSet<(int, int)> coords)
     {
-        var coords = ParseInput(lines);
-
         Check tryMoveNorth = ((int x, int y) coord, out (int x, int y) outCoord) =>
         {
             outCoord = (coord.x, coord.y - 1);
@@ -197,39 +192,7 @@ public class DayTwentyThree : IChallenge<int>
 
         Queue<Check> checks = new(new Check[] { tryMoveNorth, tryMoveSouth, tryMoveWest, tryMoveEast });
 
-        var changesPerRound = 0;
-        var numberOfRounds = 0;
-
-        do
-        {
-            changesPerRound = 0;
-            numberOfRounds++;
-            Dictionary<(int x, int y), (int x, int y)> newCoords = new();
-            foreach (var coord in coords)
-            {
-                if (hasNoSurroudingElves(coord)) continue;
-                changesPerRound++;
-
-                foreach (var check in checks)
-                {
-                    if (check(coord, out var newCoord))
-                    {
-                        newCoords.TryAddAndMaintainUnique(newCoord, coord);
-                        break;
-                    }
-                }
-            }
-
-            checks.Enqueue(checks.Dequeue());
-
-            foreach (var coordSet in newCoords)
-            {
-                coords.Remove(coordSet.Value);
-                coords.Add(coordSet.Key);
-            }
-        } while (changesPerRound > 0);
-
-        return numberOfRounds;
+        return (checks, hasNoSurroudingElves);
     }
 }
 
