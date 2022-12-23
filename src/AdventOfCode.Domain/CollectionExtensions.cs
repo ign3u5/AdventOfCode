@@ -1,7 +1,21 @@
-﻿namespace AdventOfCode;
+﻿using System.Drawing;
+
+namespace AdventOfCode;
 
 public static class CollectionExtensions
 {
+    public static bool TryAddAndMaintainUnique<T, U>(this IDictionary<T, U> dictionary, T key, U value)
+    {
+        if (dictionary.ContainsKey(key))
+        {
+            dictionary.Remove(key);
+            return false;
+        }
+
+        dictionary[key] = value;
+        return true;
+    }
+
     public static U TryAdd<T, U>(this IDictionary<T, U> dictionary, T key, Func<T, U> initialiser)
     {
         if (dictionary.TryGetValue(key, out U? val)) return val;
