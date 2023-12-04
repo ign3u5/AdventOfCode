@@ -1,10 +1,7 @@
-﻿using AdventOfCode.TwentyThree;
-
-var challenge = new DayThree();
+﻿var challenge = new DayFour();
 
 var lines = await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
 
-// 609678622 is too high
 var taskOneOutput = challenge.RunTaskOne(lines);
 Console.WriteLine(taskOneOutput);
 
