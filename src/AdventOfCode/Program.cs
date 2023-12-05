@@ -1,4 +1,4 @@
-﻿var challenge = new DayFour();
+﻿var challenge = new DayFive();
 
 var lines = await File.ReadAllLinesAsync(challenge.ChallengeInputPath);
 
