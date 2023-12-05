@@ -13,4 +13,10 @@
       <ProjectReference Include="..\AdventOfCode.TwentyThree\AdventOfCode.TwentyThree.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="ChallengeInputData\DayFive.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

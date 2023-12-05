@@ -3,7 +3,7 @@ using Xunit;
 
 namespace AdventOfCode.TwentyThree.Tests;
 
-public class DayFiveTests : BaseTests<DayFive, int>
+public class DayFiveTests : BaseTests<DayFive, long>
 {
     private const string InputOne = """
     seeds: 79 14 55 13
@@ -42,10 +42,10 @@ public class DayFiveTests : BaseTests<DayFive, int>
     """;
 
     [Theory]
-    [InlineData(InputOne, 13)]
-    public void RunTaskOne(string input, int expected) => TaskOne(input, expected);
+    [InlineData(InputOne, 35)]
+    public void RunTaskOne(string input, long expected) => TaskOne(input, expected);
     
     [Theory]
-    [InlineData(InputOne, 30)]
-    public void RunTaskTwo(string input, int expected) => TaskTwo(input, expected);
+    [InlineData(InputOne, 46)]
+    public void RunTaskTwo(string input, long expected) => TaskTwo(input, expected);
 }
