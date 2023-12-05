@@ -53,24 +53,26 @@ public class DayFive : IChallenge<long>
         }
     }
 
-    private record RangeData(long DestinationRangeStart, long SourceRangeStart, long RangeLength);
+    private record struct RangeData(long DestinationRangeStart, long SourceRangeStart, long RangeLength);
 
     public long RunTaskTwo(string[] lines)
     {
-        long[] initialSeeds = lines[0].Split(':')[1].Split(' ').Where(x => !string.IsNullOrWhiteSpace(x)).Select(long.Parse).ToArray();
+        string[] initialSeeds = lines[0].Split(':')[1].Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-        HashSet<long> seeders = new();
+        List<long> seeders = new();
         for (int iSeedNo = 0; iSeedNo < initialSeeds.Length; iSeedNo += 2)
         {
-            for (var start = initialSeeds[iSeedNo]; start < initialSeeds[iSeedNo] + initialSeeds[iSeedNo + 1]; start++)
+            var seed = long.Parse(initialSeeds[iSeedNo]);
+            var range = long.Parse(initialSeeds[iSeedNo + 1]);
+            for (var start = seed; start < seed + range; start++)
             {
                 seeders.Add(start);
             }
         }
 
         long[] seeds = seeders.ToArray();
-
-        List<RangeData> rangeDatas = new();
+        long[] ogSeeds = seeds.ToArray();
+        Console.WriteLine($"Total seeds {seeds.Length}");
 
         for (int lineNo = 2; lineNo < lines.Length; lineNo++)
         {
@@ -78,39 +80,35 @@ public class DayFive : IChallenge<long>
 
             if (string.IsNullOrWhiteSpace(line))
             {
-                UpdateSeeds();
+                ogSeeds = seeds.ToArray();
             }
 
             if (line.Length == 0 || !char.IsDigit(line[0]))
             {
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    Console.WriteLine(line);
+                }
+
                 continue;
             }
 
-            long[] mapParts = line.Split(' ').Where(x => !string.IsNullOrWhiteSpace(x)).Select(long.Parse).ToArray();
+            string[] mapParts = line.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-            rangeDatas.Add(new RangeData(mapParts[0], mapParts[1], mapParts[2]));
-        }
+            long sourceRangeStart = long.Parse(mapParts[1]);
+            long destinationRangeStart = long.Parse(mapParts[0]);
+            long rangeLength = long.Parse(mapParts[2]);
 
-        UpdateSeeds();
-
-        return seeds.QuickSort((curr, pivot) => curr < pivot).First();
-
-        void UpdateSeeds()
-        {
             for (int seedNo = 0; seedNo < seeds.Length; seedNo++)
             {
-                long seed = seeds[seedNo];
-
-                foreach (RangeData rangeData in rangeDatas)
+                long seed = ogSeeds[seedNo];
+                if (seed >= sourceRangeStart && seed < sourceRangeStart + rangeLength)
                 {
-                    if (seed >= rangeData.SourceRangeStart && seed < rangeData.SourceRangeStart + rangeData.RangeLength)
-                    {
-                        seeds[seedNo] = rangeData.DestinationRangeStart + (seed - rangeData.SourceRangeStart);
-                    }
+                    seeds[seedNo] = destinationRangeStart + (seed - sourceRangeStart);
                 }
             }
-
-            rangeDatas = new();
         }
+
+        return seeds.Min();
     }
 }
